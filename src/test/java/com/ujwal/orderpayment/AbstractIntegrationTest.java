@@ -8,6 +8,7 @@ import com.ujwal.orderpayment.user.Role;
 import com.ujwal.orderpayment.user.User;
 import com.ujwal.orderpayment.user.UserRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -42,6 +43,10 @@ public abstract class AbstractIntegrationTest {
 
     protected static String bearer(String token) {
         return "Bearer " + token;
+    }
+
+    protected String orderBody(long productId, int quantity) throws Exception {
+        return json(Map.of("items", List.of(Map.of("productId", productId, "quantity", quantity))));
     }
 
     /** Gives a request its own client IP so the per-IP login rate limiter never couples tests together. */
