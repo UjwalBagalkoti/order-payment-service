@@ -1,5 +1,7 @@
 # Order & Payment Processing Service
 
+[![CI](https://github.com/UjwalBagalkoti/order-payment-service/actions/workflows/ci.yml/badge.svg)](https://github.com/UjwalBagalkoti/order-payment-service/actions/workflows/ci.yml)
+
 A Spring Boot backend for placing orders and paying for them safely under concurrency:
 no overselling, no double charges, cached reads, and asynchronous order events.
 
@@ -14,6 +16,17 @@ no overselling, no double charges, cached reads, and asynchronous order events.
                                        ▼
                                  Kafka  orders.paid ──▶ notification consumer
 ```
+
+## Live demo
+| | |
+|---|---|
+| Demo UI (Vercel) | _link added after the Vercel deploy_ |
+| API (Render) | https://order-payment-service.onrender.com |
+| Swagger UI | https://order-payment-service.onrender.com/swagger-ui.html |
+
+The API runs on a free Render instance that sleeps when idle, so the first request can take about a minute.
+In the demo UI you can place an order, pay it, retry the same payment key (no second charge), and fire
+10 simultaneous payments to see the database accept exactly one.
 
 ## Stack
 Java 17 · Spring Boot 3.3 · Spring Security + JWT · PostgreSQL + Spring Data JPA · Flyway ·
@@ -78,9 +91,23 @@ Results from my machine (fill in after running):
 | off | | | |
 | on | | | |
 
-## Deploying to Render
-`render.yaml` is a Blueprint for the web service, Postgres and Redis (Key Value). Render has no managed
-Kafka, so it runs with `EVENTS_TYPE=log`. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the dashboard.
+## Demo frontend (`frontend/`)
+A dependency-free static page (HTML/CSS/JS, no build step) that talks to the API. It is deployed on Vercel
+with **Root Directory = `frontend`**. The API base URL lives in `frontend/config.js` and can be overridden
+per visit with `?api=https://your-api.example.com`.
+
+## Deployment
+| Part | Where | Notes |
+|---|---|---|
+| API | Render (Docker, free) | built from the `Dockerfile`; `EVENTS_TYPE=log` because Render has no managed Kafka |
+| Cache | Render Key Value (free) | `REDIS_HOST`, `REDIS_PORT` |
+| Database | Postgres (Neon free tier) | `DB_URL=jdbc:postgresql://<host>/<db>?sslmode=require`, plus `DB_USER`, `DB_PASSWORD` |
+| Frontend | Vercel | static site from `frontend/` |
+
+Environment variables for the API: `JWT_SECRET` (32+ chars), `ADMIN_EMAIL` / `ADMIN_PASSWORD` (bootstraps the
+first admin), `CORS_ORIGINS` (comma separated; the Vercel domain), `JAVA_TOOL_OPTIONS=-Xmx320m` for the 512 MB free tier.
+`render.yaml` is an alternative Blueprint that provisions Postgres and Redis on Render as well; note that Render
+allows only one free Postgres per account.
 
 ## Known limitations (and what I would do next)
 - **Event publishing is a dual write** (commit, then publish): a crash in between loses the event.
