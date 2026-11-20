@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order &amp; Payment Service — live demo</title>
+  <meta name="description" content="Interactive demo of a Spring Boot order and payment API: JWT auth, optimistic locking, idempotent payments.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="wrap head">
+      <div>
+        <h1>Order &amp; Payment Service</h1>
+        <p class="sub">Live demo of the Spring Boot API. <a id="docs" href="#" target="_blank" rel="noopener">API docs</a> · <a href="https://github.com/UjwalBagalkoti/order-payment-service" target="_blank" rel="noopener">Source</a></p>
+      </div>
+      <div id="session" class="session"></div>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main class="wrap grid">
+    <section class="card" id="auth-card">
+      <h2>1. Sign in</h2>
+      <form id="auth-form">
+        <label>Email <input id="email" type="email" required autocomplete="username"></label>
+        <label>Password <input id="password" type="password" minlength="8" required autocomplete="current-password"></label>
+        <div class="row">
+          <button type="submit" data-mode="login">Log in</button>
+          <button type="submit" data-mode="register" class="ghost">Register</button>
+        </div>
+      </form>
+      <p class="hint">Registration creates a normal user. Login is rate limited to 10 attempts per minute per IP.</p>
+    </section>
+
+    <section class="card" id="admin-card" hidden>
+      <h2>Admin: add product</h2>
+      <form id="product-form">
+        <label>Name <input id="p-name" required maxlength="200"></label>
+        <div class="row">
+          <label>Price <input id="p-price" type="number" min="0" step="0.01" required></label>
+          <label>Stock <input id="p-stock" type="number" min="0" step="1" required></label>
+        </div>
+        <button type="submit">Create product</button>
+      </form>
+    </section>
+
+    <section class="card wide" id="products-card">
+      <h2>2. Products <small>(public, cached in Redis)</small></h2>
+      <div class="row">
+        <input id="search" type="search" placeholder="Search products">
+        <button id="refresh" class="ghost" type="button">Refresh</button>
+      </div>
+      <ul id="products" class="list"></ul>
+    </section>
+
+    <section class="card wide" id="orders-card">
+      <h2>3. My orders &amp; payments</h2>
+      <p class="hint">Stock is decremented with optimistic locking. Payments need an <code>Idempotency-Key</code>.</p>
+      <ul id="orders" class="list"></ul>
+    </section>
+
+    <section class="card wide">
+      <h2>Request log</h2>
+      <pre id="log" aria-live="polite"></pre>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
