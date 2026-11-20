@@ -8,6 +8,20 @@ spring:
     web:
       pageable:
         max-page-size: 100
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      connect-timeout: 1s
+      timeout: 500ms
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      properties:
+        # Never let a Kafka outage hang a payment request for the default 60s.
+        max.block.ms: 3000
+    consumer:
+      group-id: notifications
+      auto-offset-reset: earliest
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/orders}
     username: ${DB_USER:postgres}
@@ -29,6 +43,15 @@ app:
     # Override JWT_SECRET in any real environment (min 32 bytes).
     secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
     expiration-ms: 3600000
+  events:
+    # kafka | log. Use "log" on hosts without a Kafka broker.
+    type: ${EVENTS_TYPE:kafka}
+  cache:
+    enabled: ${CACHE_ENABLED:true}
+  rate-limit:
+    login-per-minute: 10
+  payment:
+    mock-failure-rate: 0.0
 
 management:
   endpoints:

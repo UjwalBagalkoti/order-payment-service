@@ -7,6 +7,8 @@ import com.ujwal.orderpayment.order.OrderDtos.PlaceOrderRequest;
 import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,17 +23,21 @@ public class OrderService {
 
     private final OrderTx tx;
     private final OrderRepository orders;
+    private final CacheManager cacheManager;
 
-    public OrderService(OrderTx tx, OrderRepository orders) {
+    public OrderService(OrderTx tx, OrderRepository orders, CacheManager cacheManager) {
         this.tx = tx;
         this.orders = orders;
+        this.cacheManager = cacheManager;
     }
 
     /** Not @Transactional on purpose: each retry must get a fresh transaction and fresh data. */
     public OrderResponse place(Long userId, PlaceOrderRequest request) {
         for (int attempt = 1; ; attempt++) {
             try {
-                return tx.place(userId, request);
+                OrderResponse response = tx.place(userId, request);
+                evictProductCache(request); // stock changed, so cached product reads are stale
+                return response;
             } catch (OptimisticLockingFailureException ex) {
                 if (attempt >= MAX_ATTEMPTS) {
                     throw new ConflictException("Too many concurrent updates, please retry");
@@ -53,6 +59,17 @@ public class OrderService {
                 .filter(o -> o.getUserId().equals(userId))
                 .orElseThrow(() -> new NotFoundException("Order " + orderId + " not found"));
         return OrderResponse.from(order);
+    }
+
+    private void evictProductCache(PlaceOrderRequest request) {
+        try {
+            Cache cache = cacheManager.getCache("products");
+            if (cache != null) {
+                request.items().forEach(i -> cache.evict(i.productId().toString()));
+            }
+        } catch (RuntimeException e) {
+            log.warn("Could not evict product cache", e);
+        }
     }
 
     private static void backoff(int attempt) {

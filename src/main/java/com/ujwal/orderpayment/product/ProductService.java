@@ -3,6 +3,8 @@ package com.ujwal.orderpayment.product;
 import com.ujwal.orderpayment.common.NotFoundException;
 import com.ujwal.orderpayment.product.ProductDtos.ProductRequest;
 import com.ujwal.orderpayment.product.ProductDtos.ProductResponse;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class ProductService {
         return repo.findByNameContainingIgnoreCase(q, pageable).map(ProductResponse::from);
     }
 
+    @Cacheable(cacheNames = "products", key = "#id.toString()")
     @Transactional(readOnly = true)
     public ProductResponse get(Long id) {
         return repo.findById(id)
@@ -36,6 +39,7 @@ public class ProductService {
         return ProductResponse.from(repo.save(p));
     }
 
+    @CacheEvict(cacheNames = "products", key = "#id.toString()")
     @Transactional
     public ProductResponse update(Long id, ProductRequest req) {
         Product p = repo.findById(id)
@@ -44,6 +48,7 @@ public class ProductService {
         return ProductResponse.from(p);
     }
 
+    @CacheEvict(cacheNames = "products", key = "#id.toString()")
     @Transactional
     public void delete(Long id) {
         if (!repo.existsById(id)) {

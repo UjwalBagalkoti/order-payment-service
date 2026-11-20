@@ -15,16 +15,46 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # Single-node Kafka in KRaft mode (no ZooKeeper). Reachable from other containers as kafka:9092.
+  kafka:
+    image: apache/kafka:3.8.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
   app:
     build: .
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
     environment:
       DB_URL: jdbc:postgresql://db:5432/orders
       DB_USER: postgres
       DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP: kafka:9092
+      EVENTS_TYPE: kafka
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-local-dev-secret-local-dev}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMe123!}
     ports:
       - "8080:8080"
 

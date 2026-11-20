@@ -25,7 +25,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
  * Base class for integration tests. Keep every subclass free of extra @MockBean/@TestPropertySource
  * so they all reuse the same cached context and containers.
  */
-@SpringBootTest
+@SpringBootTest(properties = "app.events.type=log") // no Kafka broker in tests
 @AutoConfigureMockMvc
 @Import(TestcontainersConfig.class)
 public abstract class AbstractIntegrationTest {
