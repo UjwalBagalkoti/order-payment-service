@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.annotations.BatchSize;
 
-@Entity
+// Entity name differs from the class name because "Order" collides with the ORDER keyword in JPQL/HQL.
+@Entity(name = "CustomerOrder")
 @Table(name = "orders")
 public class Order {
 
