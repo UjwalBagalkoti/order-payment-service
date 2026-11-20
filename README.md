@@ -20,7 +20,7 @@ no overselling, no double charges, cached reads, and asynchronous order events.
 ## Live demo
 | | |
 |---|---|
-| Demo UI (Vercel) | _link added after the Vercel deploy_ |
+| Demo UI (Vercel) | https://order-payment-service-rho.vercel.app |
 | API (Render) | https://order-payment-service.onrender.com |
 | Swagger UI | https://order-payment-service.onrender.com/swagger-ui.html |
 
@@ -93,7 +93,7 @@ Results from my machine (fill in after running):
 
 ## Demo frontend (`frontend/`)
 A dependency-free static page (HTML/CSS/JS, no build step) that talks to the API. It is deployed on Vercel
-with **Root Directory = `frontend`**. The API base URL lives in `frontend/config.js` and can be overridden
+(the root `vercel.json` points Vercel at the `frontend` folder, so no Root Directory setting is needed). The API base URL lives in `frontend/config.js` and can be overridden
 per visit with `?api=https://your-api.example.com`.
 
 ## Deployment
