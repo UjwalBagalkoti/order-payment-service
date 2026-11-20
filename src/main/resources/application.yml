@@ -23,7 +23,7 @@ spring:
       group-id: notifications
       auto-offset-reset: earliest
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/orders}
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:orders}}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
   jpa:
