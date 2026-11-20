@@ -3,6 +3,7 @@ package com.ujwal.orderpayment.common;
 import java.time.Instant;
 import java.util.stream.Collectors;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,10 +29,28 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler({ConflictException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler({ConflictException.class, DataIntegrityViolationException.class,
+            OptimisticLockingFailureException.class})
     ResponseEntity<ErrorResponse> conflict(Exception ex) {
-        String msg = ex instanceof ConflictException ? ex.getMessage() : "Resource already exists";
+        String msg = ex instanceof ConflictException
+                ? ex.getMessage()
+                : "Request conflicts with existing or concurrent changes, please retry";
         return build(HttpStatus.CONFLICT, msg);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    ResponseEntity<ErrorResponse> notFound(NotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    ResponseEntity<ErrorResponse> badRequest(BadRequestException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    ResponseEntity<ErrorResponse> tooManyRequests(TooManyRequestsException ex) {
+        return build(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
     }
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {

@@ -1,6 +1,13 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: order-payment-service
+  data:
+    web:
+      pageable:
+        max-page-size: 100
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/orders}
     username: ${DB_USER:postgres}
@@ -8,11 +15,16 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: validate
+      # Flyway owns the schema. Switch to "validate" once your build passes, to catch entity/schema drift.
+      ddl-auto: none
   flyway:
     enabled: true
 
 app:
+  admin:
+    # Optional: bootstraps the first ADMIN user on startup.
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
   jwt:
     # Override JWT_SECRET in any real environment (min 32 bytes).
     secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
